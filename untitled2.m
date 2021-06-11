@@ -43,7 +43,7 @@ m = optimvar('m', t, 'LowerBound', 0);
 id = optimvar('id', t, 'Type', 'integer', 'LowerBound', 0, 'UpperBound', 1);
 d = optimvar('d', t, 'LowerBound', 0, 'UpperBound', d_max); % define d_max_id
 c = optimvar('c', t, 'LowerBound', 0, 'UpperBound', d_max); % define d_max_one_minus_id
-soc = optimvar('soc', t, 'LowerBound', soc_min, 'UpperBound', soc_max);
+soc = optimvar('soc', t+1, 'LowerBound', soc_min, 'UpperBound', soc_max);
 eu = optimvar('eu', t, 'UpperBound', e_max);
 ed = optimvar('ed', t, 'UpperBound', e_max);
 ru = optimvar('ru', t, 'LowerBound', 0);  
@@ -54,31 +54,17 @@ rd = optimvar('rd', t, 'LowerBound', 0);
 cons4 = d <= d_max * id;
 cons5 = c <= d_max * (1 - id);
 cons7_9 = optimconstr(744);
-for i=1:744
+for i=1:745
    if mod(i, 24) == 1
        cons7_9(i) = soc(i) == soc_0;
    else
-       cons7_9(i) = soc(i) == soc(i-1) + deltat * (c(i) - d(i)/gamaRTE)/e_max + (ed(i) - eub/gamaRTE);
+       cons7_9(i) = soc(i) == soc(i - 1) + deltat * (c(i - 1) - d(i - 1)/gamaRTE)/e_max + (ed(i - 1) - eu/gamaRTE);
    end
 end
-
 cons10 = ru <= d_max - d + c;
 cons11 = rd <= d_max + d - c;
-
-% kud da smjestim soc0 i kako da organiziram soc? 
-% trebam ga koristiti paralelno kao polje, da nemam 744 constrainta, zapravo 1488
-
-% cons14 = optimconstr(744);
-% cons15 = optimconstr(744);
-% cons14(1) = soc_0 + deltat * (c(1) - d(1)/gamaRTE)/e_max - deltat_SR * (ru(i)/(gamaRTE*e_max)) >= soc_min;
-% for i = 2:744
-%     cons14(i) = soc(i - 1) + deltat * (c(i) - d(i)/gamaRTE)/e_max - deltat_SR * (ru(i)/(gamaRTE*e_max)) >= soc_min;
-%     cons15(i) = soc(i - 1) + deltat * (c(i) - d(i)/gamaRTE)/e_max - deltat_SR * (ru(i)/(gamaRTE*e_max)) >= soc_max;
-% end
-
-
-% cons14 = soc(t-1) + deltat * (c - d/gamaRTE)/e_max - deltat_SR * (ru/(gamaRTE*e_max)) >= soc_min;
-% cons15 = soc(t-1) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
+cons14 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max - deltat_SR * (ru/(gamaRTE*e_max)) >= soc_min;
+cons15 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
 cons16 = sum(ru) == alpha_SR * sum(rd); % sum by batteries and not t
 cons17 = ed == deltat_SR * betad * rd ; % trebam betad i betau
 cons18 = eu == deltat_SR * betau * ru;
@@ -90,6 +76,8 @@ ObjectiveFunctionEPVPP = - sum(lambdaDAM.*m) - sum(lambdaSRB.*(ru+rd)) - 0 - (DE
 batteryProblem = optimproblem;
 batteryProblem.Objective = ObjectiveFunctionEPVPP;
 batteryProblem.Constraints.soc = cons7_9;
+batteryProblem.Constraints.ru = cons10;
+batteryProblem.Constraints.rd = cons11;
 batteryProblem.Constraints.socmin = cons14;
 batteryProblem.Constraints.socmax = cons15;
 batteryProblem.Constraints.ru = cons16;
