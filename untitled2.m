@@ -36,8 +36,6 @@ soc_max = 0.9;
 gamaRTE = 0.8;
 deltat = 1;
 deltat_SR = 0.25;
-% rub_upperBound = d_max - db(t) + cb(t)
-% rdb_upperBound = d_max - db(t) - cb(t)
 
 % OPTIMIZATION VARIABLES
 % g = optimvar('g', t, 'LowerBound', g, 'UpperBound', g); 
@@ -55,6 +53,9 @@ rd = optimvar('rd', t, 'LowerBound', 0);
 
 cons4 = d <= d_max * id;
 cons5 = c <= d_max * (1 - id);
+cons7 = soc == soc(t-1) + 1 * (c - d/gamaRTE)/e_max + (edb - eub/gamaRTE);
+cons10 = ru <= d_max - d + c;
+cons11 = rd <= d_max + d - c;
 
 % kud da smjestim soc0 i kako da organiziram soc? 
 % trebam ga koristiti paralelno kao polje, da nemam 744 constrainta, zapravo 1488
@@ -67,7 +68,7 @@ cons5 = c <= d_max * (1 - id);
 %     cons15(i) = soc(i - 1) + deltat * (c(i) - d(i)/gamaRTE)/e_max - deltat_SR * (ru(i)/(gamaRTE*e_max)) >= soc_max;
 % end
 
-cons7 = soc == soc(t-1) + 1 * (c - d/gamaRTE)/e_max + (edb - eub/gamaRTE);
+
 % cons14 = soc(t-1) + deltat * (c - d/gamaRTE)/e_max - deltat_SR * (ru/(gamaRTE*e_max)) >= soc_min;
 cons15 = soc(t-1) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
 cons16 = sum(ru) == alpha_SR * sum(rd); % sum by batteries and not t
