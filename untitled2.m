@@ -24,25 +24,26 @@ t = 744;
 g = ones(t) * 5464000; % [5464000, 5464000, ..., 5464000], data from 2013, assume g(t) = g(min) = g(max)
 
 %  LI-ION BATTERY parameters
-% B = linspace(1, 6, 6); % batteries = [1, 2, ..., 6]
+B = linspace(1, 6, 6); % batteries = [1, 2, ..., 6]
 DELTA_REP = 0.6;
 d_max = 500; % battery's max charge/discharge rate, kWh
 e_max = 1000; % battery's capacity, kWh
 C_CAP = 1250 * e_max; % capital cost of each battery
 cyc_max = 6000; % battery's cycle life
-soc_0 = 0.5; % soc_0 NEEDS TO BE RESET AFTER EVERY 24H
+soc_0 = 0.5;
 soc_min = 0.3;
 soc_max = 0.9;
 gamaRTE = 0.8;
 deltat = 1;
 deltat_SR = 0.25;
+alpha_SR = 1.5;
 
 % OPTIMIZATION VARIABLES
 % g = optimvar('g', t, 'LowerBound', g, 'UpperBound', g); 
 m = optimvar('m', t, 'LowerBound', 0);
 id = optimvar('id', t, 'Type', 'integer', 'LowerBound', 0, 'UpperBound', 1);
-d = optimvar('d', t, 'LowerBound', 0, 'UpperBound', d_max); % define d_max_id
-c = optimvar('c', t, 'LowerBound', 0, 'UpperBound', d_max); % define d_max_one_minus_id
+d = optimvar('d', t, 'LowerBound', 0, 'UpperBound', d_max); 
+c = optimvar('c', t, 'LowerBound', 0, 'UpperBound', d_max); 
 soc = optimvar('soc', t+1, 'LowerBound', soc_min, 'UpperBound', soc_max);
 eu = optimvar('eu', t, 'UpperBound', e_max);
 ed = optimvar('ed', t, 'UpperBound', e_max);
@@ -58,7 +59,7 @@ for i=1:745
    if mod(i, 24) == 1
        cons7_9(i) = soc(i) == soc_0;
    else
-       cons7_9(i) = soc(i) == soc(i - 1) + deltat * (c(i - 1) - d(i - 1)/gamaRTE)/e_max + (ed(i - 1) - eu/gamaRTE);
+       cons7_9(i) = soc(i) == soc(i - 1); % + deltat * (c(i - 1) - d(i - 1)/gamaRTE)/e_max + (ed(i - 1) - eu/gamaRTE);
    end
 end
 cons10 = ru <= d_max - d + c;
@@ -66,11 +67,11 @@ cons11 = rd <= d_max + d - c;
 cons14 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max - deltat_SR * (ru/(gamaRTE*e_max)) >= soc_min;
 cons15 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
 cons16 = sum(ru) == alpha_SR * sum(rd); % sum by batteries and not t
-cons17 = ed == deltat_SR * betad * rd ; % trebam betad i betau
-cons18 = eu == deltat_SR * betau * ru;
+cons17 = ed == deltat_SR * rd * betad; % trebam betad i betau
+cons18 = eu == deltat_SR * ru * betau;
 
 % OBJECTIVE FUNCTION
-ObjectiveFunctionEPVPP = - sum(lambdaDAM.*m) - sum(lambdaSRB.*(ru+rd)) - 0 - (DELTA_REP * C_CAP * sum((t * sum(c) + sum(edb)) / (e_max * cyc_max)));
+ObjectiveFunctionEPVPP = - sum(lambdaDAM(1:744).*m) - sum(lambda_secondReserve(1:744).*(ru+rd)) - 0 - (DELTA_REP * C_CAP * sum((t * sum(c) + sum(ed)) / (e_max * cyc_max)));
 
 % OPTIMIZATION PROBLEM
 batteryProblem = optimproblem;
