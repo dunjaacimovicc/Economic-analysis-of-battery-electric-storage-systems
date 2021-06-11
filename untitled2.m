@@ -21,11 +21,8 @@ end
 
 % CONSTANTS
 t = 744;
-g = ones(t) * 5464000; % [5464000, 5464000, ..., 5464000], data from 2013, assume g(t) = g(min) = g(max)
-
-%  LI-ION BATTERY parameters
 B = linspace(1, 6, 6); % batteries = [1, 2, ..., 6]
-DELTA_REP = 0.6;
+g = ones(t) * 5464000; % [5464000, 5464000, ..., 5464000], data from 2013, assume g(t) = g(min) = g(max)
 d_max = 500; % battery's max charge/discharge rate, kWh
 e_max = 1000; % battery's capacity, kWh
 C_CAP = 1250 * e_max; % capital cost of each battery
@@ -34,6 +31,7 @@ soc_0 = 0.5;
 soc_min = 0.3;
 soc_max = 0.9;
 gamaRTE = 0.8;
+DELTA_REP = 0.6;
 deltat = 1;
 deltat_SR = 0.25;
 alpha_SR = 1.5;
@@ -51,7 +49,6 @@ ru = optimvar('ru', t, 'LowerBound', 0);
 rd = optimvar('rd', t, 'LowerBound', 0); 
  
 % CONSTRAINTS
-
 cons4 = d <= d_max * id;
 cons5 = c <= d_max * (1 - id);
 cons7_9 = optimconstr(744);
