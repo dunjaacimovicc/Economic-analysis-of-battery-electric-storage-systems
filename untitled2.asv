@@ -56,12 +56,13 @@ cons5 = c <= d_max * (1 - id);
 cons7_9 = optimconstr(744);
 for i=1:744
    if mod(i, 24) == 1
-       cons7_9(i) = soc(i) == soc_0;
+       cons79(i) = soc(i) == soc_0;
    else
-       cons7_9(i) = soc(i) == soc(i-1) + deltat * (c(i) - d(i)/gamaRTE)/e_max + (ed(i) - eub/gamaRTE);
+       cons79(i) = soc(i) == soc(i-1) + deltat * (c(i) - d(i)/gamaRTE)/e_max + (ed(i) - eub/gamaRTE);
    end
 end
 
+cons9 = 
 cons10 = ru <= d_max - d + c;
 cons11 = rd <= d_max + d - c;
 
@@ -78,9 +79,9 @@ cons11 = rd <= d_max + d - c;
 
 
 % cons14 = soc(t-1) + deltat * (c - d/gamaRTE)/e_max - deltat_SR * (ru/(gamaRTE*e_max)) >= soc_min;
-% cons15 = soc(t-1) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
+cons15 = soc(t-1) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
 cons16 = sum(ru) == alpha_SR * sum(rd); % sum by batteries and not t
-cons17 = ed == deltat_SR * betad * rd ; % trebam betad i betau
+cons17 = ed == deltat_SR * betad * rd ;
 cons18 = eu == deltat_SR * betau * ru;
 
 % OBJECTIVE FUNCTION
@@ -89,7 +90,7 @@ ObjectiveFunctionEPVPP = - sum(lambdaDAM.*m) - sum(lambdaSRB.*(ru+rd)) - 0 - (DE
 % OPTIMIZATION PROBLEM
 batteryProblem = optimproblem;
 batteryProblem.Objective = ObjectiveFunctionEPVPP;
-batteryProblem.Constraints.soc = cons7_9;
+batteryProblem.Constraints.soc = cons79;
 batteryProblem.Constraints.socmin = cons14;
 batteryProblem.Constraints.socmax = cons15;
 batteryProblem.Constraints.ru = cons16;
