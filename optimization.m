@@ -22,7 +22,7 @@ end
 % CONSTANTS
 t = 744;
 B = linspace(1, 6, 6); % batteries = [1, 2, ..., 6]
-g = ones(t, 1) * 5464; % [5464000, 5464000, ..., 5464000], data from 2013, assume g(t) = g(min) = g(max)
+% g = ones(t, 1) * 5464; % [5464000, 5464000, ..., 5464000], data from 2013, assume g(t) = g(min) = g(max)
 d_max = 500; % battery's max charge/discharge rate, kWh
 e_max = 1000; % battery's capacity, kWh
 C_CAP = 1250 * e_max; % capital cost of each battery
@@ -40,7 +40,7 @@ betau = rand(744, 1);
 betad = rand(744, 1);
 
 % OPTIMIZATION VARIABLES
-% g = optimvar('g', t, 'LowerBound', g, 'UpperBound', g); 
+g = optimvar('g', t, 'LowerBound', 5464, 'UpperBound', 5464); 
 m = optimvar('m', t, 'LowerBound', 0);
 % L = optimvar('L', t, 'LowerBound', 0);
 id = optimvar('id', t, 'Type', 'integer', 'LowerBound', 0, 'UpperBound', 1);
@@ -68,7 +68,7 @@ cons10 = ru <= d_max - d + c;
 cons11 = rd <= d_max + d - c;
 cons14 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max - deltat_SR * (ru/(gamaRTE*e_max)) >= soc_min;
 cons15 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
-cons16 = sum(ru) == alpha_SR * sum(rd); % sum by batteries and not t
+cons16 = ru == alpha_SR * rd; % sum by batteries and not t
 cons17 = ed == deltat_SR * rd .* betad; % trebam betad i betau
 cons18 = eu == deltat_SR * ru .* betau;
 
