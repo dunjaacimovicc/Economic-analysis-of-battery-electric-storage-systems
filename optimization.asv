@@ -38,6 +38,11 @@ alpha_SR = 1.5;
 
 betau = rand(744, 1);
 betad = rand(744, 1);
+zeros = [25, 32, 41, 50, 52, 55, 66, 70, 81, 101, 102, 141, 147, 155, 158, 161, 175, 187, 197, 221, 224, 228, 234, 237, 244, 246, 249, 254, 258, 269, 270, 277, 294, 301, 305, 328, 339, 363, 364, 366, 393, 416, 441, 447, 450, 475, 476, 482, 488, 498, 501, 507, 508, 510, 511, 524, 548, 550, 560, 575, 586, 600, 603, 618, 620, 629, 634, 640, 649, 653, 684, 686, 726, 739];
+for i=1:length(zeros)
+    betau(zeros(i)) = 0
+    betau(zeros(i)) = 0
+
 
 % OPTIMIZATION VARIABLES
 g = optimvar('g', t, 'LowerBound', 5464, 'UpperBound', 5464); 
@@ -47,6 +52,7 @@ id = optimvar('id', t, 'Type', 'integer', 'LowerBound', 0, 'UpperBound', 1);
 d = optimvar('d', t, 'LowerBound', 0, 'UpperBound', d_max); 
 c = optimvar('c', t, 'LowerBound', 0, 'UpperBound', d_max); 
 soc = optimvar('soc', t+1, 'LowerBound', soc_min, 'UpperBound', soc_max);
+e = optimvar('e', t, 'LowerBound', 0, 'UpperBound', e_max);
 eu = optimvar('eu', t, 'LowerBound', 0, 'UpperBound', e_max);
 ed = optimvar('ed', t, 'LowerBound', 0, 'UpperBound', e_max);
 ru = optimvar('ru', t, 'LowerBound', 0);  
@@ -66,8 +72,8 @@ for i=1:745
 end
 cons10 = ru <= d_max - d + c;
 cons11 = rd <= d_max + d - c;
-cons12 = e == soc(1:744) * e_max + deltat * (c - d/gamaRTE) - deltat_SR * ru/gamaRTE;
-cons13 = 
+% cons12 = e == soc(1:744) * e_max + deltat * (c - d/gamaRTE);
+% cons13 = e == soc(1:744) * e_max + deltat * (c - d/gamaRTE) - deltat_SR * ru/gamaRTE;
 cons14 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max - deltat_SR * (ru/(gamaRTE*e_max)) >= soc_min;
 cons15 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
 cons16 = ru == alpha_SR * rd; % sum by batteries and not t
@@ -75,7 +81,7 @@ cons17 = ed == deltat_SR * rd .* betad; % trebam betad i betau
 cons18 = eu == deltat_SR * ru .* betau;
 
 % OBJECTIVE FUNCTION
-ObjectiveFunctionEPVPP = - sum(lambdaDAM(1:744).*m) - sum(lambda_secondReserve(1:744).*(ru+rd)) - 0 - (DELTA_REP * C_CAP * sum((t * sum(c) + sum(ed)) / (e_max * cyc_max)));
+ObjectiveFunctionEPVPP = - sum(lambdaDAM(1:744).*m) - sum(lambda_secondReserve(1:744).*(ru+rd)) + 0 + (DELTA_REP * C_CAP * sum((t * sum(c) + sum(ed)) / (e_max * cyc_max)));
 
 % OPTIMIZATION PROBLEM
 batteryProblem = optimproblem;
@@ -86,6 +92,8 @@ batteryProblem.Constraints.c = cons5;
 batteryProblem.Constraints.soc = cons7_9;
 batteryProblem.Constraints.ru = cons10;
 batteryProblem.Constraints.rd = cons11;
+% batteryProblem.Constraints.cons12 = cons12;
+% batteryProblem.Constraints.cons13 = cons13;
 batteryProblem.Constraints.socmin = cons14;
 batteryProblem.Constraints.socmax = cons15;
 batteryProblem.Constraints.ru = cons16;
