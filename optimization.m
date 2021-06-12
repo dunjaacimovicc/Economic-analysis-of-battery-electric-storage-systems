@@ -3,8 +3,8 @@ secondReserveTable = readtable('SecondReserve.xlsx');
 lambda_secondReserve = table2array(secondReserveTable(:, 7));
 
 sureSdreTable = readtable('SURE_SDRE.xlsx');
-lambda_sure = table2array(sureSdreTable(:, 7));
-lambda_sdre = table2array(sureSdreTable(:, 8));
+lambda_sure = table2array(sureSdreTable(:, 3));
+lambda_sdre = table2array(sureSdreTable(:, 4));
 
 damFiles = struct2table(dir('*.txt')); % convert the struct array to a table
 damFilesSize = size(damFiles);
@@ -36,6 +36,9 @@ deltat = 1;
 deltat_SR = 0.25;
 alpha_SR = 1.5;
 
+betau = rand(744, 1)
+betad = rand(744, 1)
+
 % OPTIMIZATION VARIABLES
 % g = optimvar('g', t, 'LowerBound', g, 'UpperBound', g); 
 m = optimvar('m', t, 'LowerBound', 0);
@@ -64,8 +67,8 @@ cons11 = rd <= d_max + d - c;
 cons14 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max - deltat_SR * (ru/(gamaRTE*e_max)) >= soc_min;
 cons15 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
 cons16 = sum(ru) == alpha_SR * sum(rd); % sum by batteries and not t
-cons17 = ed == deltat_SR * rd * betad; % trebam betad i betau
-cons18 = eu == deltat_SR * ru * betau;
+cons17 = ed == deltat_SR * rd .* betad; % trebam betad i betau
+cons18 = eu == deltat_SR * ru .* betau;
 
 % OBJECTIVE FUNCTION
 ObjectiveFunctionEPVPP = - sum(lambdaDAM(1:744).*m) - sum(lambda_secondReserve(1:744).*(ru+rd)) - 0 - (DELTA_REP * C_CAP * sum((t * sum(c) + sum(ed)) / (e_max * cyc_max)));
