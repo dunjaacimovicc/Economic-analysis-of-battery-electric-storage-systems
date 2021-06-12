@@ -42,7 +42,6 @@ betad = rand(744, 1);
 % OPTIMIZATION VARIABLES
 % g = optimvar('g', t, 'LowerBound', g, 'UpperBound', g); 
 m = optimvar('m', t, 'LowerBound', 0);
-L = optimvar('L', t);
 id = optimvar('id', t, 'Type', 'integer', 'LowerBound', 0, 'UpperBound', 1);
 d = optimvar('d', t, 'LowerBound', 0, 'UpperBound', d_max); 
 c = optimvar('c', t, 'LowerBound', 0, 'UpperBound', d_max); 
@@ -53,7 +52,7 @@ ru = optimvar('ru', t, 'LowerBound', 0);
 rd = optimvar('rd', t, 'LowerBound', 0); 
  
 % CONSTRAINTS
-cons1 = m == deltat * g + deltat * sum(d - c) - L;
+cons1 = deltat * g + deltat * sum(d - c
 cons4 = d <= d_max * id;
 cons5 = c <= d_max * (1 - id);
 cons7_9 = optimconstr(744);
@@ -78,9 +77,6 @@ ObjectiveFunctionEPVPP = - sum(lambdaDAM(1:744).*m) - sum(lambda_secondReserve(1
 % OPTIMIZATION PROBLEM
 batteryProblem = optimproblem;
 batteryProblem.Objective = ObjectiveFunctionEPVPP;
-batteryProblem.Constraints.m = cons1;
-batteryProblem.Constraints.d = cons4;
-batteryProblem.Constraints.c = cons5;
 batteryProblem.Constraints.soc = cons7_9;
 batteryProblem.Constraints.ru = cons10;
 batteryProblem.Constraints.rd = cons11;
