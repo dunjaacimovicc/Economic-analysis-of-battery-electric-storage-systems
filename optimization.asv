@@ -22,7 +22,7 @@ end
 % CONSTANTS
 t = 744;
 B = linspace(1, 6, 6); % batteries = [1, 2, ..., 6]
-g = ones(t, 1) * 5464; % [5464000, 5464000, ..., 5464000], data from 2013, assume g(t) = g(min) = g(max)
+% g = ones(t, 1) * 5464; % [5464000, 5464000, ..., 5464000], data from 2013, assume g(t) = g(min) = g(max)
 d_max = 500; % battery's max charge/discharge rate, kWh
 e_max = 1000; % battery's capacity, kWh
 C_CAP = 1250 * e_max; % capital cost of each battery
@@ -40,19 +40,20 @@ betau = rand(744, 1);
 betad = rand(744, 1);
 
 % OPTIMIZATION VARIABLES
-% g = optimvar('g', t, 'LowerBound', g, 'UpperBound', g); 
+g = optimvar('g', t, 'LowerBound', 5464, 'UpperBound', 5464); 
 m = optimvar('m', t, 'LowerBound', 0);
+% L = optimvar('L', t, 'LowerBound', 0);
 id = optimvar('id', t, 'Type', 'integer', 'LowerBound', 0, 'UpperBound', 1);
 d = optimvar('d', t, 'LowerBound', 0, 'UpperBound', d_max); 
 c = optimvar('c', t, 'LowerBound', 0, 'UpperBound', d_max); 
 soc = optimvar('soc', t+1, 'LowerBound', soc_min, 'UpperBound', soc_max);
-eu = optimvar('eu', t, 'UpperBound', e_max);
-ed = optimvar('ed', t, 'UpperBound', e_max);
+eu = optimvar('eu', t, 'LowerBound', 0, 'UpperBound', e_max);
+ed = optimvar('ed', t, 'LowerBound', 0, 'UpperBound', e_max);
 ru = optimvar('ru', t, 'LowerBound', 0);  
 rd = optimvar('rd', t, 'LowerBound', 0); 
  
 % CONSTRAINTS
-cons1 = deltat * g + deltat * sum(d - c
+cons1 = m == deltat * g + deltat * sum(d - c);
 cons4 = d <= d_max * id;
 cons5 = c <= d_max * (1 - id);
 cons7_9 = optimconstr(744);
@@ -65,9 +66,11 @@ for i=1:745
 end
 cons10 = ru <= d_max - d + c;
 cons11 = rd <= d_max + d - c;
+cons12 = e == soc(1:744) * e_max + deltat * (c - d/gamaRTE) - deltat_SR * ru/gamaRTE;
+cons13 = 
 cons14 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max - deltat_SR * (ru/(gamaRTE*e_max)) >= soc_min;
 cons15 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
-cons16 = sum(ru) == alpha_SR * sum(rd); % sum by batteries and not t
+cons16 = ru == alpha_SR * rd; % sum by batteries and not t
 cons17 = ed == deltat_SR * rd .* betad; % trebam betad i betau
 cons18 = eu == deltat_SR * ru .* betau;
 
@@ -77,6 +80,9 @@ ObjectiveFunctionEPVPP = - sum(lambdaDAM(1:744).*m) - sum(lambda_secondReserve(1
 % OPTIMIZATION PROBLEM
 batteryProblem = optimproblem;
 batteryProblem.Objective = ObjectiveFunctionEPVPP;
+batteryProblem.Constraints.m = cons1;
+batteryProblem.Constraints.d = cons4;
+batteryProblem.Constraints.c = cons5;
 batteryProblem.Constraints.soc = cons7_9;
 batteryProblem.Constraints.ru = cons10;
 batteryProblem.Constraints.rd = cons11;

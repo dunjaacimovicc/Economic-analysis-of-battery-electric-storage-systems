@@ -47,8 +47,9 @@ id = optimvar('id', t, 'Type', 'integer', 'LowerBound', 0, 'UpperBound', 1);
 d = optimvar('d', t, 'LowerBound', 0, 'UpperBound', d_max); 
 c = optimvar('c', t, 'LowerBound', 0, 'UpperBound', d_max); 
 soc = optimvar('soc', t+1, 'LowerBound', soc_min, 'UpperBound', soc_max);
-eu = optimvar('eu', t, 'UpperBound', e_max);
-ed = optimvar('ed', t, 'UpperBound', e_max);
+e = optimvar('e', t, 'LowerBound', 0, 'UpperBound', e_max);
+eu = optimvar('eu', t, 'LowerBound', 0, 'UpperBound', e_max);
+ed = optimvar('ed', t, 'LowerBound', 0, 'UpperBound', e_max);
 ru = optimvar('ru', t, 'LowerBound', 0);  
 rd = optimvar('rd', t, 'LowerBound', 0); 
  
@@ -66,6 +67,8 @@ for i=1:745
 end
 cons10 = ru <= d_max - d + c;
 cons11 = rd <= d_max + d - c;
+cons12 = e == soc(1:744) * e_max + deltat * (c - d/gamaRTE) 
+cons13 = e == soc(1:744) * e_max + deltat * (c - d/gamaRTE) - deltat_SR * ru/gamaRTE;
 cons14 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max - deltat_SR * (ru/(gamaRTE*e_max)) >= soc_min;
 cons15 = soc(1:744) + deltat * (c - d/gamaRTE)/e_max + deltat_SR * (rd/e_max) <= soc_max;
 cons16 = ru == alpha_SR * rd; % sum by batteries and not t
@@ -84,6 +87,8 @@ batteryProblem.Constraints.c = cons5;
 batteryProblem.Constraints.soc = cons7_9;
 batteryProblem.Constraints.ru = cons10;
 batteryProblem.Constraints.rd = cons11;
+batteryProblem.Constraints.cons12 = cons12;
+batteryProblem.Constraints.cons13 = cons13;
 batteryProblem.Constraints.socmin = cons14;
 batteryProblem.Constraints.socmax = cons15;
 batteryProblem.Constraints.ru = cons16;
