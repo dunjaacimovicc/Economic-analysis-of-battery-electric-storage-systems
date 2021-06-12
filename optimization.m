@@ -42,7 +42,7 @@ betad = rand(744, 1);
 % OPTIMIZATION VARIABLES
 % g = optimvar('g', t, 'LowerBound', g, 'UpperBound', g); 
 m = optimvar('m', t, 'LowerBound', 0);
-L = optimvar('L', t);
+% L = optimvar('L', t, 'LowerBound', 0);
 id = optimvar('id', t, 'Type', 'integer', 'LowerBound', 0, 'UpperBound', 1);
 d = optimvar('d', t, 'LowerBound', 0, 'UpperBound', d_max); 
 c = optimvar('c', t, 'LowerBound', 0, 'UpperBound', d_max); 
@@ -53,7 +53,7 @@ ru = optimvar('ru', t, 'LowerBound', 0);
 rd = optimvar('rd', t, 'LowerBound', 0); 
  
 % CONSTRAINTS
-cons1 = m == deltat * g + deltat * sum(d - c) - L;
+cons1 = m == deltat * g + deltat * sum(d - c);
 cons4 = d <= d_max * id;
 cons5 = c <= d_max * (1 - id);
 cons7_9 = optimconstr(744);
